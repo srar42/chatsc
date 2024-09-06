@@ -1,274 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charSergio="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatSC - Tu Chat Privado</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChatWave - Tu Chat Privado</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-            width: 90%;
-            max-width: 500px;
-        }
-        h1 {
-            color: #4a4a4a;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        input {
-            background-color: #f0f0f0;
-        }
-        button {
-            background-color: #667eea;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #764ba2;
-        }
-        #messages {
-            height: 400px;
-            overflow-y: scroll;
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 15px;
-            background-color: white;
-            border-radius: 5px;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 5px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        .sent {
-            background-color: #DCF8C6;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-        .received {
-            background-color: #E8E8E8;
-        }
-        .timestamp {
-            font-size: 0.8em;
-            color: #888;
-            margin-top: 2px;
-        }
-        #chatContainer {
-            display: flex;
-            flex-direction: column;
-        }
-        #messageInput {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        .input-group {
-            display: flex;
-        }
-        #sendButton {
-            width: auto;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>ChatSergio</h1>
         <div id="authContainer">
+            <h1>ChatWave</h1>
             <input type="text" id="usernameInput" placeholder="Nombre de usuario">
             <input type="email" id="emailInput" placeholder="Email">
             <input type="password" id="passwordInput" placeholder="Contraseña">
             <button onclick="signIn()">Iniciar sesión</button>
             <button onclick="signUp()">Registrarse</button>
         </div>
-        <div id="chatContainer" style="display:none;">
-            <div id="messages"></div>
-            <div class="input-group">
-                <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
-                <button id="sendButton" onclick="sendMessage()">Enviar</button>
+        <div id="mainContainer" style="display:none;">
+            <div id="chatListContainer">
+                <div id="chatListHeader">
+                    <h2>Chats</h2>
+                    <button id="editProfileBtn" onclick="showProfileEditor()" aria-label="Editar Perfil">
+                        <i class="fas fa-user-edit"></i>
+                    </button>
+                </div>
+                <div id="chatList">
+                    <!-- Chats se añadirán aquí dinámicamente -->
+                </div>
+            </div>
+            <div id="activeChatContainer">
+                <div id="chatHeader">
+                    <button id="backToChatList" onclick="showChatList()" aria-label="Volver a la lista de chats">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2>Selecciona un chat</h2>
+                </div>
+                <div id="messages"></div>
+                <div class="input-group">
+                    <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+                    <button id="sendButton" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Configuración de Firebase (reemplaza con tus propias credenciales)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDTDl5KVNRhqpbWOS51DXMcvjmG0P48SGY",
-            authDomain: "chatsc-31c8a.firebaseapp.com",
-            projectId: "chatsc-31c8a",
-            storageBucket: "chatsc-31c8a.appspot.com",
-            messagingSenderId: "467357898222",
-            appId: "1:467357898222:web:f947fe8765dd900c6a6aff",
-            measurementId: "G-67V4ER1YTG"
-        };
+    <div class="overlay" id="overlay"></div>
+    <div id="profileContainer">
+        <h2>Editar Perfil</h2>
+        <img id="currentProfilePhoto" src="/api/placeholder/100/100" alt="Foto de perfil">
+        <label for="profilePhotoInput" id="profilePhotoLabel">Cambiar foto de perfil</label>
+        <input type="file" id="profilePhotoInput" accept="image/*">
+        <input type="text" id="editUsername" placeholder="Nuevo nombre de usuario">
+        <input type="email" id="editEmail" placeholder="Nuevo email">
+        <button onclick="updateProfile()">Guardar Cambios</button>
+        <button onclick="hideProfileEditor()">Cancelar</button>
+    </div>
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Referencias a elementos del DOM
-        const authContainer = document.getElementById('authContainer');
-        const chatContainer = document.getElementById('chatContainer');
-        const messagesDiv = document.getElementById('messages');
-        const messageInput = document.getElementById('messageInput');
-        const usernameInput = document.getElementById('usernameInput');
-
-        // Función para iniciar sesión
-        function signIn() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            const username = usernameInput.value.trim();
-            
-            if (!username) {
-                alert("Por favor, ingresa un nombre de usuario.");
-                return;
-            }
-
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Guardar o actualizar el nombre de usuario
-                    firebase.database().ref('users/' + userCredential.user.uid).set({
-                        username: username
-                    });
-                    authContainer.style.display = 'none';
-                    chatContainer.style.display = 'block';
-                    loadMessages();
-                })
-                .catch((error) => {
-                    alert("Error de inicio de sesión: " + error.message);
-                });
-        }
-
-        // Función para registrarse
-        function signUp() {
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            const username = usernameInput.value.trim();
-            
-            if (!username) {
-                alert("Por favor, ingresa un nombre de usuario.");
-                return;
-            }
-
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Guardar el nombre de usuario
-                    firebase.database().ref('users/' + userCredential.user.uid).set({
-                        username: username
-                    });
-                    alert("Usuario registrado con éxito");
-                })
-                .catch((error) => {
-                    alert("Error de registro: " + error.message);
-                });
-        }
-
-        // Función para cargar mensajes
-        function loadMessages() {
-            messagesDiv.innerHTML = ''; // Limpiar mensajes existentes
-            const messagesRef = firebase.database().ref('messages');
-            messagesRef.on('child_added', (snapshot) => {
-                const message = snapshot.val();
-                displayMessage(message);
-            });
-        }
-
-        // Función para mostrar mensajes
-        function displayMessage(message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message';
-            
-            const currentUser = firebase.auth().currentUser;
-            firebase.database().ref('users/' + currentUser.uid).once('value').then((snapshot) => {
-                const currentUsername = snapshot.val().username;
-                
-                if (message.sender === currentUsername) {
-                    messageElement.classList.add('sent');
-                } else {
-                    messageElement.classList.add('received');
-                }
-                
-                messageElement.innerHTML = `
-                    <strong>${message.sender}:</strong> ${message.text}
-                    <div class="timestamp">${new Date(message.timestamp).toLocaleString()}</div>
-                `;
-                
-                messagesDiv.appendChild(messageElement);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
-        }
-
-        // Función para enviar mensaje
-        function sendMessage() {
-            const messageText = messageInput.value.trim();
-            if (messageText !== '') {
-                const user = firebase.auth().currentUser;
-                if (user) {
-                    firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
-                        const username = snapshot.val().username;
-                        const messagesRef = firebase.database().ref('messages');
-                        messagesRef.push({
-                            sender: username,
-                            text: messageText,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        messageInput.value = '';
-                    });
-                }
-            }
-        }
-
-        // Escuchar el estado de autenticación
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                firebase.database().ref('users/' + user.uid).once('value').then((snapshot) => {
-                    const username = snapshot.val().username;
-                    user.updateProfile({
-                        displayName: username
-                    }).then(() => {
-                        authContainer.style.display = 'none';
-                        chatContainer.style.display = 'block';
-                        loadMessages();
-                    });
-                });
-            } else {
-                authContainer.style.display = 'block';
-                chatContainer.style.display = 'none';
-            }
-        });
-
-        // Evento para enviar mensaje con la tecla Enter
-        messageInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-    </script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
+    <!-- Tu archivo JavaScript principal -->
+    <script src="app.js"></script>
 </body>
 </html>
